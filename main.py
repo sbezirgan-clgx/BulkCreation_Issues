@@ -9,6 +9,8 @@ import datetime
 import custom_fields
 from custom_fields import Customfield
 from openpyxl import load_workbook
+FILE_NAME = 'Example1.xlsx'
+FOLDER_PATH = rf'\\filer-diablo-prd\data_acquisition\QA\EagleQC\Daily defects upload\{FILE_NAME}'
 KEY_LIST = []
 STAT_LIST = []
 INDEX_LIST = []
@@ -111,7 +113,7 @@ def create_bulk_issues(jira:JIRA,issue_value_list):
 
 
 jira = start_connection()
-df = pd.read_excel("Example1.xlsx")
+df = pd.read_excel(FOLDER_PATH)
 df = df.reset_index()
 print(df)
 format_list = []
@@ -120,7 +122,7 @@ num_of_issues = 0
 
 for index, row in df.iterrows():
     lookup_key = str(row['3072 Field Name']).split("_")[0]
-
+    my_val = 'mgundluru@corelogic.com' if row['Assignee'] != 'varssingh@corelogic.com' else 'varssingh@corelogic.com'
     QA_Regular_Format1_3072 = {
         'project': {'id': '21300'},
         'summary': row['Summary'],  # summary----------
@@ -150,9 +152,10 @@ for index, row in df.iterrows():
         'customfield_26003': str(row["Batch Seq"]), #Batch Seq--------
         'customfield_26004': str(row["Fips"]),#FIPS Code
         'customfield_26015': str(row["Layout"]),#Layout
-        #'assignee': {'name': ' ' if math.isnan(row['Assignee ']) else str(row['Assignee '])}, #Assignee
+        'assignee': {'name': my_val}, #Assignee
         'customfield_25506': ' ' if math.isnan(row['FilmID']) else str(row['FilmID']),#FilmID
-        'customfield_17716' : format_the_date(row['Begin date']) #Begin Date
+        'customfield_17716' : format_the_date(row['Begin date']), #Begin Date
+        'customfield_25900' : str(row["Remarks"]) #Remarks
     }
 
     try:
@@ -255,7 +258,7 @@ writer = pd.ExcelWriter('Defected_File.xlsx', engine='openpyxl', mode='a')
 field_code_df.to_excel(writer,sheet_name='Code Table')
 writer.close()
 df.insert(32, "Jira Keys",JUST_KEY_LIST)
-df.to_excel("Example1.xlsx", index=False)
+df.to_excel(FOLDER_PATH, index=False)
 print(field_code_df)
 #issue = jira.issue('ETQT-22807')
 #read_csv_line_by_line(filename='out2.csv',jira=jira)
